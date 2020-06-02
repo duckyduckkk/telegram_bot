@@ -2,7 +2,7 @@
 redis
 
 # If you need to specify a version
-requests==2.16.5
+requests==2.20.0
 pyTelegramBotAPI
 pandas==1.0.4
 lxml==4.5.1

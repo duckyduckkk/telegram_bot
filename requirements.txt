@@ -3,3 +3,5 @@ redis
 
 # If you need to specify a version
 requests==2.16.5
+pyTelegramBotAPI
+pandas==1.0.4

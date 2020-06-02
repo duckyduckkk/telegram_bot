@@ -3,7 +3,6 @@ import telebot
 import config # my config
 import requests
 from telebot import apihelper
-import random
 from parse_table import normal_table # my parser for table
 from telebot import types
 import pandas as pd

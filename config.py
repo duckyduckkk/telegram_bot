@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 TOKEN = '1212209407:AAED6psbjLcmdjXk9PxUQipYCs1-nYTO25Q' #Token for bot @first
 
 

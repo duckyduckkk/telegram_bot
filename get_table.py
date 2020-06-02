@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pandas as pd
 from parse_table import normal_table,normal_stat
 from config import sites

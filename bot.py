@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 import telebot
-import config # my config
 import requests
-from telebot import apihelper
-from parse_table import normal_table # my parser for table
-from telebot import types
+import random
 import pandas as pd
-from get_table import get_table,get_stat
+
+from telebot import apihelper
+from telebot import types
+
+import config # my config
+from get_table import get_table,get_stat,make_league_table
+from get_table import make_stat_table,make_schedule_for_next_tour
 
 
-stat = 'https://www.sports.ru/epl/stat/'
-table = pd.read_html(stat, header=0)
-text = table[1].loc[:,['М','Г','Имя','Команда']].to_string(justify='right',index=False)
 
 bot = telebot.TeleBot(config.TOKEN)
 
@@ -25,8 +25,9 @@ def welcome(message):
     item4 = types.KeyboardButton("Лига 1 🇫🇷")
     item5 = types.KeyboardButton("Серия А 🇮🇹")
     item6 = types.KeyboardButton("РПЛ 🇷🇺")
-    item7 = types.KeyboardButton("Игроки")
-    markup.add(item1,item2,item3,item4,item5,item6,item7)
+    item7 = types.KeyboardButton("Игроки 🙍‍♂️")
+    item8 = types.KeyboardButton("Расписание 📅")
+    markup.add(item1,item2,item3,item4,item5,item6,item7,item8)
     
     bot.send_message(message.chat.id, "Добро пожаловать, {0.first_name}!\nЯ - <b>{1.first_name}</b>, я умею выводить таблицы чемпионатов топ 5 стран по футболу=).".format(message.from_user, bot.get_me()),
         parse_mode='html',reply_markup = markup)
@@ -36,32 +37,46 @@ def welcome(message):
 def lala(message):
     if message.chat.type == 'private':
         if message.text == 'АПЛ 🏴󠁧󠁢󠁥󠁮󠁧󠁿':
-            bot.send_message(message.chat.id,get_table('АПЛ'),
-                parse_mode='html')
+            bot.send_message(message.chat.id,make_league_table('АПЛ'),
+                parse_mode='MarkDown')
         elif message.text == 'Ла Лига 🇪🇸':
-            bot.send_message(message.chat.id,get_table('Ла Лига'),
+            bot.send_message(message.chat.id,make_league_table('Ла Лига'),
                 parse_mode='html')
         elif message.text == 'Бундес Лига 🇩🇪':
-            bot.send_message(message.chat.id,get_table('Бундес Лига'),
+            bot.send_message(message.chat.id,make_league_table('Бундес Лига'),
                 parse_mode='html')
         elif message.text == 'Лига 1 🇫🇷':
-            bot.send_message(message.chat.id,get_table('Лига 1'),
+            bot.send_message(message.chat.id,make_league_table('Лига 1'),
                 parse_mode='html')
         elif message.text == 'Серия А 🇮🇹':
-            bot.send_message(message.chat.id,get_table('Серия А'),
+            bot.send_message(message.chat.id,make_league_table('Серия А'),
                 parse_mode='html')
         elif message.text == 'РПЛ 🇷🇺':
-            bot.send_message(message.chat.id,get_table('РПЛ'),
+            bot.send_message(message.chat.id,make_league_table('РПЛ'),
                 parse_mode='html')
-        elif message.text == 'Игроки':
+        elif message.text == 'Расписание 📅':
+            markup = types.InlineKeyboardMarkup(row_width=1)
+            item1 = types.InlineKeyboardButton('Календарь АПЛ 🏴󠁧󠁢󠁥󠁮󠁧󠁿',callback_data='schedule_apl')
+            item2 = types.InlineKeyboardButton('Календарь Ла Лиги 🇪🇸',callback_data='schedule_laliga')
+            item3 = types.InlineKeyboardButton("Календарь Бундес Лига 🇩🇪",callback_data='schedule_bundes')
+            item4 = types.InlineKeyboardButton("Календарь Лига 1 🇫🇷",callback_data='schedule_liga1')
+            item5 = types.InlineKeyboardButton("Календарь Серия А 🇮🇹",callback_data='schedule_sereaa')
+            item6 = types.InlineKeyboardButton("Календарь РПЛ 🇷🇺",callback_data='schedule_rpl')
+            item7 = types.InlineKeyboardButton("Календарь Лиги Чемпионов 🇪🇺",callback_data='schedule_ucl')
+            markup.add(item1,item2,item3,item4,item5,item6,item7)
+            
+            bot.send_message(message.chat.id,'Нажми и получишь расписание ближайших двух туров нужной страны',
+                parse_mode='html',reply_markup=markup)        
+        elif message.text == 'Игроки 🙍‍♂️':
             markup = types.InlineKeyboardMarkup(row_width=1)
             item1 = types.InlineKeyboardButton('Игроки АПЛ 🏴󠁧󠁢󠁥󠁮󠁧󠁿',callback_data='player_apl')
             item2 = types.InlineKeyboardButton('Игроки Ла Лиги 🇪🇸',callback_data='player_laliga')
-            item3 = types.InlineKeyboardButton("Бундес Лига 🇩🇪",callback_data='player_bundes')
-            item4 = types.InlineKeyboardButton("Лига 1 🇫🇷",callback_data='player_liga1')
-            item5 = types.InlineKeyboardButton("Серия А 🇮🇹",callback_data='player_sereaa')
-            item6 = types.InlineKeyboardButton("РПЛ 🇷🇺",callback_data='player_rpl')
-            markup.add(item1,item2,item3,item4,item5,item6)
+            item3 = types.InlineKeyboardButton("Игроки Бундес Лига 🇩🇪",callback_data='player_bundes')
+            item4 = types.InlineKeyboardButton("Игроки Лига 1 🇫🇷",callback_data='player_liga1')
+            item5 = types.InlineKeyboardButton("Игроки Серия А 🇮🇹",callback_data='player_sereaa')
+            item6 = types.InlineKeyboardButton("Игроки РПЛ 🇷🇺",callback_data='player_rpl')
+            item7 = types.InlineKeyboardButton("Игроки Лиги Чемпионов 🇪🇺",callback_data='player_ucl')
+            markup.add(item1,item2,item3,item4,item5,item6,item7)
             
             bot.send_message(message.chat.id,'Нажми и получишь статистику игроков нужной страны',
                 parse_mode='html',reply_markup=markup)
@@ -75,22 +90,40 @@ def callback_inline(call):
     try:
         if call.message:
             if call.data == 'player_apl':
-                bot.send_message(call.message.chat.id,get_stat('АПЛ'),parse_mode='html')
+                bot.send_message(call.message.chat.id,make_stat_table('АПЛ'),parse_mode='html')
             elif call.data == 'player_laliga':
-                bot.send_message(call.message.chat.id,get_stat('Ла Лига'),parse_mode='html')
+                bot.send_message(call.message.chat.id,make_stat_table('Ла Лига'),parse_mode='html')
             elif call.data == 'player_bundes':
-                bot.send_message(call.message.chat.id,get_stat('Бундес Лига'),parse_mode='html')
+                bot.send_message(call.message.chat.id,make_stat_table('Бундес Лига'),parse_mode='html')
             elif call.data == 'player_liga1':
-                bot.send_message(call.message.chat.id,get_stat('Лига 1'),parse_mode='html')
+                bot.send_message(call.message.chat.id,make_stat_table('Лига 1'),parse_mode='html')
             elif call.data == 'player_sereaa':
-                bot.send_message(call.message.chat.id,get_stat('Серия А'),parse_mode='html')
+                bot.send_message(call.message.chat.id,make_stat_table('Серия А'),parse_mode='html')
             elif call.data == 'player_rpl':
-                bot.send_message(call.message.chat.id,get_stat('РПЛ'),parse_mode='html')
+                bot.send_message(call.message.chat.id,make_stat_table('РПЛ'),parse_mode='html')
+            elif call.data == 'player_ucl':
+                bot.send_message(call.message.chat.id,make_stat_table('Лига Чемпионов'),parse_mode='html')    
+            
+            elif call.data == 'schedule_apl':
+                bot.send_message(call.message.chat.id,make_schedule_for_next_tour('АПЛ'),parse_mode='html')
+            elif call.data == 'schedule_laliga':
+                bot.send_message(call.message.chat.id,make_schedule_for_next_tour('Ла Лига'),parse_mode='html')
+            elif call.data == 'schedule_bundes':
+                bot.send_message(call.message.chat.id,make_schedule_for_next_tour('Бундес Лига'),parse_mode='html')
+            elif call.data == 'schedule_liga1':
+                bot.send_message(call.message.chat.id,make_schedule_for_next_tour('Лига 1'),parse_mode='html')
+            elif call.data == 'schedule_sereaa':
+                bot.send_message(call.message.chat.id,make_schedule_for_next_tour('Серия А'),parse_mode='html')
+            elif call.data == 'schedule_rpl':
+                bot.send_message(call.message.chat.id,make_schedule_for_next_tour('РПЛ'),parse_mode='html')
+            elif call.data == 'schedule_ucl':
+                bot.send_message(call.message.chat.id,make_schedule_for_next_tour('Лига Чемпионов'),parse_mode='html')
+
         bot.edit_message_text(chat_id=call.message.chat.id, message_id = call.message.message_id,text=call.message.text,
                                 reply_markup=None)
             
     except Exception as e:
         print(repr(e))
-  
+
 #RUN
 bot.polling(none_stop=True)
